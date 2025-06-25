@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { Bell, Settings, User } from "lucide-react";
+import { Bell, Settings, User, LogOut } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,12 +10,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/contexts/AuthContext";
 import LeadsTable from "./dashboard/LeadsTable";
 import CampaignManager from "./dashboard/CampaignManager";
 import AdminPanel from "./dashboard/AdminPanel";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("leads");
+  const { currentUser, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Failed to log out:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background flex">
@@ -102,12 +112,22 @@ export default function Home() {
         <div className="mt-auto pt-4 border-t">
           <div className="flex items-center space-x-3">
             <Avatar>
-              <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=admin" />
-              <AvatarFallback>AD</AvatarFallback>
+              <AvatarImage
+                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentUser?.email}`}
+              />
+              <AvatarFallback>
+                {currentUser?.displayName?.charAt(0) ||
+                  currentUser?.email?.charAt(0) ||
+                  "U"}
+              </AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-medium">Admin User</p>
-              <p className="text-xs text-muted-foreground">admin@example.com</p>
+              <p className="text-sm font-medium">
+                {currentUser?.displayName || "User"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {currentUser?.email}
+              </p>
             </div>
           </div>
         </div>
@@ -140,7 +160,10 @@ export default function Home() {
                   <span>Profile</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem>Logout</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Logout</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
